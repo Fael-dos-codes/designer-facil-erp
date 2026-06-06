@@ -3698,3 +3698,137 @@ select {
     min-height: auto !important;
   }
 }
+
+/* ===== LOGIN MOBILE CORRIGIDO ===== */
+
+@media (max-width: 768px) {
+  html,
+  body,
+  #root {
+    width: 100% !important;
+    min-height: 100% !important;
+    overflow-x: hidden !important;
+    background: #070011 !important;
+    border: none !important;
+  }
+
+  body {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .login-page {
+    width: 100% !important;
+    min-height: 100dvh !important;
+    height: auto !important;
+
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    padding: 22px 14px !important;
+
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+
+    border: none !important;
+    outline: none !important;
+  }
+
+  .login-hero {
+    display: none !important;
+  }
+
+  .login-form-wrapper {
+    width: 100% !important;
+    height: auto !important;
+    min-height: auto !important;
+
+    padding: 0 !important;
+
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    border: none !important;
+    outline: none !important;
+  }
+
+  .login-card {
+    width: 100% !important;
+    max-width: 430px !important;
+
+    padding: 34px 22px !important;
+
+    border-radius: 26px !important;
+    border: 1px solid rgba(236, 0, 255, 0.28) !important;
+
+    margin: 0 auto !important;
+  }
+
+  .login-form-logo {
+    width: 120px !important;
+    height: 90px !important;
+    margin: 0 auto 20px !important;
+  }
+
+  .login-form-logo img {
+    max-width: 115px !important;
+    max-height: 85px !important;
+  }
+}
+
+/* ===== CHAT CORRIGIDO ===== */
+
+.chat-box {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 14px !important;
+}
+
+.chat-message {
+  max-width: 72% !important;
+
+  padding: 14px 16px !important;
+
+  border-radius: 18px !important;
+
+  background: linear-gradient(135deg, rgba(112, 0, 160, 0.85), rgba(55, 0, 120, 0.9)) !important;
+  border: 1px solid rgba(236, 0, 255, 0.18) !important;
+
+  color: white !important;
+}
+
+.chat-message.mine {
+  align-self: flex-end !important;
+  border-radius: 18px 18px 4px 18px !important;
+}
+
+.chat-message.other {
+  align-self: flex-start !important;
+  border-radius: 18px 18px 18px 4px !important;
+}
+
+.chat-message strong {
+  color: rgba(255,255,255,0.82) !important;
+}
+
+.chat-message p {
+  color: white !important;
+  margin: 0 !important;
+}
+
+@media (max-width: 768px) {
+  .chat-message {
+    max-width: 78% !important;
+  }
+
+  .team-chat-layout {
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  .chat-box {
+    height: 360px !important;
+  }
+}

@@ -3,16 +3,13 @@ import { supabase } from '../services/supabase'
 import { Users, Send, Circle, MessageCircle } from 'lucide-react'
 
 export default function Equipe() {
-
   const [membroAtual, setMembroAtual] = useState(null)
-
   const [membros, setMembros] = useState([])
   const [mensagensEquipe, setMensagensEquipe] = useState([])
   const [mensagensPrivadas, setMensagensPrivadas] = useState([])
 
   const [mensagemEquipe, setMensagemEquipe] = useState('')
   const [mensagemPrivada, setMensagemPrivada] = useState('')
-
   const [membroSelecionado, setMembroSelecionado] = useState(null)
 
   const carregarMembros = useCallback(async () => {
@@ -36,7 +33,7 @@ export default function Equipe() {
         )
       `)
       .order('id', { ascending: true })
-      .limit(80)
+      .limit(100)
 
     setMensagensEquipe(data || [])
   }, [])
@@ -54,26 +51,24 @@ export default function Equipe() {
         `and(remetente_id.eq.${remetente.id},destinatario_id.eq.${destino.id}),and(remetente_id.eq.${destino.id},destinatario_id.eq.${remetente.id})`
       )
       .order('id', { ascending: true })
-      .limit(80)
+      .limit(100)
 
     setMensagensPrivadas(data || [])
   }, [membroAtual, membroSelecionado])
 
   useEffect(() => {
-
     async function iniciarEquipe() {
-
       const { data } = await supabase.auth.getUser()
 
       if (!data.user) return
 
       const email = data.user.email
 
-const nome = email
-  .split('@')[0]
-  .replace(/^@+/, '')
-  .replace(/[._-]/g, ' ')
-  .replace(/\b\w/g, letra => letra.toUpperCase())
+      const nome = email
+        .split('@')[0]
+        .replace(/^@+/, '')
+        .replace(/[._-]/g, ' ')
+        .replace(/\b\w/g, letra => letra.toUpperCase())
 
       const { data: membro } = await supabase
         .from('equipe_membros')
@@ -98,15 +93,13 @@ const nome = email
     }
 
     iniciarEquipe()
-
   }, [carregarMembros, carregarMensagensEquipe])
 
   useEffect(() => {
-
     if (!membroAtual) return
 
     const canalEquipe = supabase
-      .channel('chat-geral-equipe')
+      .channel('mensagens-equipe-realtime')
       .on(
         'postgres_changes',
         {
@@ -121,7 +114,7 @@ const nome = email
       .subscribe()
 
     const canalPrivado = supabase
-      .channel('chat-privado-equipe')
+      .channel('mensagens-privadas-realtime')
       .on(
         'postgres_changes',
         {
@@ -137,31 +130,13 @@ const nome = email
       )
       .subscribe()
 
-    const canalMembros = supabase
-      .channel('membros-online')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'equipe_membros'
-        },
-        async () => {
-          await carregarMembros()
-        }
-      )
-      .subscribe()
-
     return () => {
       supabase.removeChannel(canalEquipe)
       supabase.removeChannel(canalPrivado)
-      supabase.removeChannel(canalMembros)
     }
-
   }, [
     membroAtual,
     membroSelecionado,
-    carregarMembros,
     carregarMensagensEquipe,
     carregarMensagensPrivadas
   ])
@@ -183,6 +158,11 @@ const nome = email
     await carregarMensagensEquipe()
   }
 
+  async function selecionarMembro(membro) {
+    setMembroSelecionado(membro)
+    await carregarMensagensPrivadas(membro, membroAtual)
+  }
+
   async function enviarMensagemPrivada() {
     if (!mensagemPrivada.trim()) return
     if (!membroAtual || !membroSelecionado) return
@@ -201,14 +181,8 @@ const nome = email
     await carregarMensagensPrivadas(membroSelecionado, membroAtual)
   }
 
-  async function selecionarMembro(membro) {
-    setMembroSelecionado(membro)
-    await carregarMensagensPrivadas(membro, membroAtual)
-  }
-
   return (
     <div>
-
       <div className="page-header">
         <h1>Equipe</h1>
       </div>
@@ -216,14 +190,12 @@ const nome = email
       <div className="team-chat-layout">
 
         <div className="card">
-
           <div className="card-title">
             <Users size={22} />
             Membros Online
           </div>
 
           <div className="online-list">
-
             {membros.map(membro => (
               <button
                 key={membro.id}
@@ -249,27 +221,23 @@ const nome = email
                 />
               </button>
             ))}
-
           </div>
-
         </div>
 
         <div className="card chat-card">
-
           <div className="card-title">
             <MessageCircle size={22} />
             Chat Geral
           </div>
 
           <div className="chat-box">
-
             {mensagensEquipe.map(msg => (
               <div
                 key={msg.id}
                 className={
                   msg.remetente_id === membroAtual?.id
                     ? 'chat-message mine'
-                    : 'chat-message'
+                    : 'chat-message other'
                 }
               >
                 <strong>
@@ -281,7 +249,6 @@ const nome = email
                 <p>{msg.mensagem}</p>
               </div>
             ))}
-
           </div>
 
           <div className="chat-input">
@@ -298,13 +265,11 @@ const nome = email
               <Send size={18} />
             </button>
           </div>
-
         </div>
 
       </div>
 
       <div className="card chat-card">
-
         <div className="card-title">
           <MessageCircle size={22} />
           Chat Individual
@@ -321,14 +286,13 @@ const nome = email
             </div>
 
             <div className="chat-box private">
-
               {mensagensPrivadas.map(msg => (
                 <div
                   key={msg.id}
                   className={
                     msg.remetente_id === membroAtual?.id
                       ? 'chat-message mine'
-                      : 'chat-message'
+                      : 'chat-message other'
                   }
                 >
                   <strong>
@@ -340,7 +304,6 @@ const nome = email
                   <p>{msg.mensagem}</p>
                 </div>
               ))}
-
             </div>
 
             <div className="chat-input">
@@ -359,9 +322,7 @@ const nome = email
             </div>
           </>
         )}
-
       </div>
-
     </div>
   )
 }
