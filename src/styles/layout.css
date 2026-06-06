@@ -2979,3 +2979,397 @@ select {
   justify-content: flex-end;
   margin-bottom: 18px;
 }
+
+/* ===== MOBILE FINAL - RESPONSIVIDADE GERAL ===== */
+
+@media (max-width: 768px) {
+
+  html,
+  body,
+  #root {
+    width: 100%;
+    min-height: 100%;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+  }
+
+  body {
+    background: #080012 !important;
+  }
+
+  .layout {
+    width: 100% !important;
+    min-height: 100dvh !important;
+
+    display: flex !important;
+    flex-direction: column !important;
+
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+  }
+
+  .sidebar {
+    width: 100% !important;
+    height: auto !important;
+    min-height: auto !important;
+
+    padding: 18px 16px !important;
+
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 50 !important;
+
+    border-right: none !important;
+    border-bottom: 1px solid rgba(236,0,255,0.22) !important;
+
+    overflow: visible !important;
+  }
+
+  .logo {
+    margin-bottom: 16px !important;
+    justify-content: flex-start !important;
+  }
+
+  .logo img {
+    width: 48px !important;
+    height: 48px !important;
+  }
+
+  .logo h1 {
+    font-size: 20px !important;
+  }
+
+  .menu {
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 10px !important;
+
+    width: 100% !important;
+
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+
+    padding-bottom: 6px !important;
+
+    scrollbar-width: none;
+  }
+
+  .menu::-webkit-scrollbar {
+    display: none;
+  }
+
+  .menu-item {
+    min-width: max-content !important;
+
+    padding: 10px 14px !important;
+
+    font-size: 14px !important;
+
+    border-radius: 999px !important;
+
+    transform: none !important;
+  }
+
+  .menu-item:hover {
+    transform: none !important;
+  }
+
+  .logout-button {
+    margin-top: 14px !important;
+    width: 100% !important;
+
+    justify-content: center !important;
+
+    padding: 11px !important;
+  }
+
+  .content {
+    width: 100% !important;
+    height: auto !important;
+    min-height: calc(100dvh - 120px) !important;
+
+    padding: 18px 14px 32px !important;
+
+    overflow-x: hidden !important;
+    overflow-y: visible !important;
+  }
+
+  .page-header,
+  .overview-header {
+    padding: 22px 18px !important;
+    border-radius: 20px !important;
+
+    margin-bottom: 18px !important;
+
+    text-align: left !important;
+  }
+
+  .page-header h1,
+  .overview-header h1 {
+    font-size: 27px !important;
+    line-height: 1.1 !important;
+  }
+
+  .page-header p,
+  .overview-header p {
+    font-size: 14px !important;
+  }
+
+  .stats-grid,
+  .overview-stats {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+
+    gap: 14px !important;
+
+    margin-top: 0 !important;
+    margin-bottom: 18px !important;
+  }
+
+  .stat-card,
+  .overview-stat {
+    width: 100% !important;
+
+    padding: 20px !important;
+
+    border-radius: 18px !important;
+  }
+
+  .stat-value {
+    font-size: 30px !important;
+  }
+
+  .stat-title {
+    font-size: 14px !important;
+  }
+
+  .card,
+  .dashboard-card,
+  .overview-card,
+  .settings-card {
+    width: 100% !important;
+
+    padding: 20px 16px !important;
+
+    border-radius: 18px !important;
+
+    margin-bottom: 18px !important;
+  }
+
+  .card-title,
+  .overview-card-title {
+    font-size: 19px !important;
+
+    align-items: center !important;
+
+    margin-bottom: 18px !important;
+  }
+
+  .form-grid,
+  .dashboard-grid,
+  .overview-grid,
+  .settings-grid,
+  .team-chat-layout,
+  .team-grid {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+
+    gap: 16px !important;
+  }
+
+  .form-group {
+    width: 100% !important;
+  }
+
+  .form-group input,
+  .form-group select,
+  .form-group textarea,
+  .search-input {
+    width: 100% !important;
+    min-height: 46px !important;
+
+    font-size: 16px !important;
+  }
+
+  .form-group textarea {
+    min-height: 110px !important;
+  }
+
+  .actions {
+    width: 100% !important;
+
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+
+    gap: 10px !important;
+  }
+
+  .btn-primary,
+  .btn-secondary,
+  .btn-edit,
+  .btn-delete {
+    width: 100% !important;
+
+    height: 46px !important;
+
+    margin-left: 0 !important;
+    margin-top: 0 !important;
+
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  .table-container {
+    width: 100% !important;
+
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+
+    border-radius: 16px !important;
+
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  .client-table {
+    min-width: 760px !important;
+  }
+
+  .client-table th,
+  .client-table td {
+    padding: 14px 16px !important;
+
+    font-size: 14px !important;
+
+    white-space: nowrap !important;
+  }
+
+  .modal-card {
+    width: calc(100% - 28px) !important;
+
+    max-width: none !important;
+
+    padding: 22px !important;
+
+    border-radius: 20px !important;
+  }
+
+  .modal-actions {
+    flex-direction: column-reverse !important;
+  }
+
+  .chat-box {
+    height: 300px !important;
+  }
+
+  .chat-message {
+    max-width: 88% !important;
+  }
+
+  .chat-input {
+    gap: 8px !important;
+  }
+
+  .chat-input input {
+    min-width: 0 !important;
+  }
+
+  .chat-input button {
+    width: 50px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .online-member {
+    grid-template-columns: auto 1fr auto !important;
+  }
+
+  .overview-stat strong {
+    font-size: 22px !important;
+  }
+
+  .login-page {
+    height: auto !important;
+    min-height: 100dvh !important;
+
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+  }
+
+  .login-hero {
+    height: auto !important;
+    min-height: auto !important;
+
+    padding: 28px 22px !important;
+  }
+
+  .login-hero h1 {
+    font-size: 36px !important;
+  }
+
+  .login-results {
+    grid-template-columns: 1fr !important;
+  }
+
+  .login-form-wrapper {
+    height: auto !important;
+    min-height: auto !important;
+
+    padding: 22px !important;
+  }
+
+  .login-card {
+    width: 100% !important;
+    max-width: none !important;
+
+    padding: 28px 22px !important;
+  }
+}
+
+@media (max-width: 430px) {
+
+  .content {
+    padding: 16px 10px 28px !important;
+  }
+
+  .page-header,
+  .overview-header {
+    padding: 20px 16px !important;
+  }
+
+  .page-header h1,
+  .overview-header h1 {
+    font-size: 25px !important;
+  }
+
+  .card,
+  .dashboard-card,
+  .overview-card,
+  .settings-card {
+    padding: 18px 14px !important;
+  }
+
+  .stat-value {
+    font-size: 28px !important;
+  }
+
+  .client-table {
+    min-width: 720px !important;
+  }
+
+  .menu-item {
+    font-size: 13px !important;
+    padding: 9px 12px !important;
+  }
+
+  .logo h1 {
+    font-size: 18px !important;
+  }
+
+  .login-hero h1 {
+    font-size: 32px !important;
+  }
+}
