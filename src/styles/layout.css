@@ -3985,8 +3985,8 @@ select {
 }
 
 .logo img {
-  width: 170px !important;
-  max-width: 170px !important;
+  width: 140px !important;
+  max-width: 140px !important;
   height: auto !important;
 
   display: block !important;
@@ -4005,8 +4005,8 @@ select {
   }
 
   .logo img {
-    width: 120px !important;
-    max-width: 120px !important;
+    width: 140px !important;
+    max-width: 140px !important;
     height: auto !important;
   }
 
