@@ -3653,3 +3653,48 @@ select {
     font-size: 13px !important;
   }
 }
+
+/* ===== VISÃO GERAL - ALINHAMENTO E CONTEÚDO DE EQUIPE ===== */
+
+.overview-header {
+  text-align: left !important;
+
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+}
+
+.overview-header h1 {
+  text-align: left !important;
+  width: 100% !important;
+  margin: 0 !important;
+}
+
+.overview-card {
+  min-height: 260px !important;
+}
+
+.overview-list-item {
+  text-align: left !important;
+  align-items: flex-start !important;
+}
+
+.overview-list-item strong,
+.overview-list-item span {
+  text-align: left !important;
+}
+
+@media (max-width: 768px) {
+  .overview-header {
+    text-align: left !important;
+  }
+
+  .overview-header h1 {
+    font-size: 28px !important;
+    text-align: left !important;
+  }
+
+  .overview-card {
+    min-height: auto !important;
+  }
+}

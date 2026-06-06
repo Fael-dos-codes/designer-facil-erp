@@ -6,8 +6,10 @@ import {
   BriefcaseBusiness,
   Wallet,
   Clock,
-  CheckCircle,
-  AlertTriangle
+  UserCheck,
+  MessageCircle,
+  Activity,
+  ShieldCheck
 } from 'lucide-react'
 
 export default function VisaoGeral() {
@@ -15,34 +17,50 @@ export default function VisaoGeral() {
   const [clientes, setClientes] = useState([])
   const [projetos, setProjetos] = useState([])
   const [financeiro, setFinanceiro] = useState([])
+  const [membros, setMembros] = useState([])
+  const [mensagensEquipe, setMensagensEquipe] = useState([])
+  const [mensagensPrivadas, setMensagensPrivadas] = useState([])
 
   useEffect(() => {
     async function carregarDados() {
       const { data: clientesData } = await supabase
         .from('clientes')
         .select('*')
-        .order('id', { ascending: false })
 
       const { data: projetosData } = await supabase
         .from('projetos')
         .select('*')
-        .order('id', { ascending: false })
 
       const { data: financeiroData } = await supabase
         .from('financeiro')
         .select('*')
-        .order('id', { ascending: false })
+
+      const { data: membrosData } = await supabase
+        .from('equipe_membros')
+        .select('*')
+
+      const { data: mensagensEquipeData } = await supabase
+        .from('mensagens_equipe')
+        .select('*')
+
+      const { data: mensagensPrivadasData } = await supabase
+        .from('mensagens_privadas')
+        .select('*')
 
       setClientes(clientesData || [])
       setProjetos(projetosData || [])
       setFinanceiro(financeiroData || [])
+      setMembros(membrosData || [])
+      setMensagensEquipe(mensagensEquipeData || [])
+      setMensagensPrivadas(mensagensPrivadasData || [])
     }
 
     carregarDados()
   }, [])
 
-  const projetosAtivos = projetos.filter(projeto => projeto.status === 'Em andamento').length
-  const projetosConcluidos = projetos.filter(projeto => projeto.status === 'Concluído').length
+  const projetosAtivos = projetos.filter(
+    projeto => projeto.status === 'Em andamento'
+  ).length
 
   const totalRecebido = financeiro
     .filter(registro => registro.status === 'Pago')
@@ -52,13 +70,18 @@ export default function VisaoGeral() {
     .filter(registro => registro.status === 'Pendente')
     .reduce((soma, registro) => soma + Number(registro.valor || 0), 0)
 
+  const membrosOnline = membros.filter(
+    membro => membro.status_online === true
+  ).length
+
+  const totalMensagens =
+    mensagensEquipe.length + mensagensPrivadas.length
+
   return (
     <div>
 
       <div className="overview-header">
-        <div>
-          <h1>Visão Geral</h1>
-        </div>
+        <h1>Visão Geral</h1>
       </div>
 
       <div className="overview-stats">
@@ -101,72 +124,87 @@ export default function VisaoGeral() {
 
         <div className="overview-card">
           <div className="overview-card-title">
-            <Users size={20} />
-            Últimos Clientes
-          </div>
-
-          {clientes.slice(0, 5).map(cliente => (
-            <div className="overview-list-item" key={cliente.id}>
-              <strong>{cliente.nome}</strong>
-              <span>Empresa: {cliente.empresa || 'Não informada'}</span>
-            </div>
-          ))}
-
-          {clientes.length === 0 && (
-            <p className="empty-text">Nenhum cliente cadastrado.</p>
-          )}
-        </div>
-
-        <div className="overview-card">
-          <div className="overview-card-title">
-            <BriefcaseBusiness size={20} />
-            Projetos Recentes
-          </div>
-
-          {projetos.slice(0, 5).map(projeto => (
-            <div className="overview-list-item" key={projeto.id}>
-              <strong>{projeto.servico || 'Projeto sem serviço'}</strong>
-              <span>Cliente: {projeto.cliente_nome || projeto.responsavel || 'Não informado'}</span>
-              <span>Status: {projeto.status || 'Sem status'}</span>
-            </div>
-          ))}
-
-          {projetos.length === 0 && (
-            <p className="empty-text">Nenhum projeto cadastrado.</p>
-          )}
-        </div>
-
-        <div className="overview-card">
-          <div className="overview-card-title">
-            <CheckCircle size={20} />
-            Indicadores de Projetos
+            <UserCheck size={20} />
+            Presença da Equipe
           </div>
 
           <div className="overview-indicator">
-            <span>Em andamento</span>
-            <strong>{projetosAtivos}</strong>
+            <span>Membros cadastrados</span>
+            <strong>{membros.length}</strong>
           </div>
 
           <div className="overview-indicator">
-            <span>Concluídos</span>
-            <strong>{projetosConcluidos}</strong>
+            <span>Membros online agora</span>
+            <strong>{membrosOnline}</strong>
+          </div>
+
+          <div className="overview-indicator">
+            <span>Membros offline</span>
+            <strong>{membros.length - membrosOnline}</strong>
           </div>
         </div>
 
         <div className="overview-card">
           <div className="overview-card-title">
-            <AlertTriangle size={20} />
-            Financeiro
+            <MessageCircle size={20} />
+            Comunicação Interna
           </div>
 
           <div className="overview-indicator">
-            <span>Recebido</span>
-            <strong>R$ {totalRecebido.toFixed(2)}</strong>
+            <span>Mensagens no chat geral</span>
+            <strong>{mensagensEquipe.length}</strong>
           </div>
 
           <div className="overview-indicator">
-            <span>Pendente</span>
-            <strong>R$ {totalPendente.toFixed(2)}</strong>
+            <span>Mensagens individuais</span>
+            <strong>{mensagensPrivadas.length}</strong>
+          </div>
+
+          <div className="overview-indicator">
+            <span>Total de interações</span>
+            <strong>{totalMensagens}</strong>
+          </div>
+        </div>
+
+        <div className="overview-card">
+          <div className="overview-card-title">
+            <Activity size={20} />
+            Status Operacional
+          </div>
+
+          <div className="overview-list-item">
+            <strong>Equipe conectada ao sistema</strong>
+            <span>
+              A aba Equipe permite acompanhar membros online e comunicação interna.
+            </span>
+          </div>
+
+          <div className="overview-list-item">
+            <strong>Comunicação centralizada</strong>
+            <span>
+              O sistema possui chat geral e conversas individuais entre membros.
+            </span>
+          </div>
+        </div>
+
+        <div className="overview-card">
+          <div className="overview-card-title">
+            <ShieldCheck size={20} />
+            Controle Interno
+          </div>
+
+          <div className="overview-list-item">
+            <strong>Ambiente administrativo</strong>
+            <span>
+              A gestão da equipe fica separada dos clientes, projetos e financeiro.
+            </span>
+          </div>
+
+          <div className="overview-list-item">
+            <strong>Base para permissões futuras</strong>
+            <span>
+              A estrutura atual permite evoluir para cargos, níveis de acesso e histórico de atividade.
+            </span>
           </div>
         </div>
 
