@@ -3897,3 +3897,74 @@ select {
     max-height: 110px !important;
   }
 }
+
+/* ================================================= */
+/* LOGO LOGIN - PC */
+/* ================================================= */
+
+.login-form-logo {
+  width: 240px !important;
+  height: 180px !important;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  margin: 0 auto 25px auto;
+}
+
+.login-form-logo img {
+  max-width: 230px !important;
+  max-height: 170px !important;
+
+  width: auto !important;
+  height: auto !important;
+
+  object-fit: contain;
+}
+
+/* ================================================= */
+/* LOGO LOGIN - CELULAR */
+/* ================================================= */
+
+@media (max-width: 768px) {
+
+  .login-form-logo {
+    width: 200px !important;
+    height: 150px !important;
+
+    margin-bottom: 20px !important;
+  }
+
+  .login-form-logo img {
+    max-width: 190px !important;
+    max-height: 140px !important;
+  }
+}
+
+/* ================================================= */
+/* LOGO ERP - PC */
+/* ================================================= */
+
+.sidebar-logo img,
+.mobile-logo img,
+.header-logo img {
+  width: 95px !important;
+  height: 95px !important;
+
+  object-fit: contain !important;
+}
+
+/* ================================================= */
+/* LOGO ERP - CELULAR */
+/* ================================================= */
+
+@media (max-width: 768px) {
+
+  .sidebar-logo img,
+  .mobile-logo img,
+  .header-logo img {
+    width: 75px !important;
+    height: 75px !important;
+  }
+}
