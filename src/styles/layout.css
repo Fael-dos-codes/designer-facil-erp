@@ -3985,8 +3985,8 @@ select {
 }
 
 .logo img {
-  width: 140px !important;
-  max-width: 140px !important;
+  width: 120px !important;
+  max-width: 120px !important;
   height: auto !important;
 
   display: block !important;
