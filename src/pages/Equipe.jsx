@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '../services/supabase'
 import { Users, Send, Circle, MessageCircle } from 'lucide-react'
 
@@ -15,6 +15,50 @@ export default function Equipe() {
 
   const [membroSelecionado, setMembroSelecionado] = useState(null)
 
+  const carregarMembros = useCallback(async () => {
+    const { data } = await supabase
+      .from('equipe_membros')
+      .select('*')
+      .order('status_online', { ascending: false })
+      .order('nome')
+
+    setMembros(data || [])
+  }, [])
+
+  const carregarMensagensEquipe = useCallback(async () => {
+    const { data } = await supabase
+      .from('mensagens_equipe')
+      .select(`
+        *,
+        equipe_membros (
+          nome,
+          email
+        )
+      `)
+      .order('id', { ascending: true })
+      .limit(80)
+
+    setMensagensEquipe(data || [])
+  }, [])
+
+  const carregarMensagensPrivadas = useCallback(async (destinatario, membroBase) => {
+    const remetente = membroBase || membroAtual
+    const destino = destinatario || membroSelecionado
+
+    if (!remetente || !destino) return
+
+    const { data } = await supabase
+      .from('mensagens_privadas')
+      .select('*')
+      .or(
+        `and(remetente_id.eq.${remetente.id},destinatario_id.eq.${destino.id}),and(remetente_id.eq.${destino.id},destinatario_id.eq.${remetente.id})`
+      )
+      .order('id', { ascending: true })
+      .limit(80)
+
+    setMensagensPrivadas(data || [])
+  }, [membroAtual, membroSelecionado])
+
   useEffect(() => {
 
     async function iniciarEquipe() {
@@ -24,7 +68,12 @@ export default function Equipe() {
       if (!data.user) return
 
       const email = data.user.email
-      const nome = email.split('@')[0]
+
+const nome = email
+  .split('@')[0]
+  .replace(/^@+/, '')
+  .replace(/[._-]/g, ' ')
+  .replace(/\b\w/g, letra => letra.toUpperCase())
 
       const { data: membro } = await supabase
         .from('equipe_membros')
@@ -44,77 +93,78 @@ export default function Equipe() {
 
       setMembroAtual(membro)
 
-      const { data: membrosData } = await supabase
-        .from('equipe_membros')
-        .select('*')
-        .order('status_online', { ascending: false })
-        .order('nome')
-
-      setMembros(membrosData || [])
-
-      const { data: mensagensEquipeData } = await supabase
-        .from('mensagens_equipe')
-        .select(`
-          *,
-          equipe_membros (
-            nome,
-            email
-          )
-        `)
-        .order('id', { ascending: true })
-        .limit(80)
-
-      setMensagensEquipe(mensagensEquipeData || [])
-
+      await carregarMembros()
+      await carregarMensagensEquipe()
     }
 
     iniciarEquipe()
 
-  }, [])
+  }, [carregarMembros, carregarMensagensEquipe])
 
-  async function carregarMembros() {
-    const { data } = await supabase
-      .from('equipe_membros')
-      .select('*')
-      .order('status_online', { ascending: false })
-      .order('nome')
+  useEffect(() => {
 
-    setMembros(data || [])
-  }
+    if (!membroAtual) return
 
-  async function carregarMensagensEquipe() {
-    const { data } = await supabase
-      .from('mensagens_equipe')
-      .select(`
-        *,
-        equipe_membros (
-          nome,
-          email
-        )
-      `)
-      .order('id', { ascending: true })
-      .limit(80)
-
-    setMensagensEquipe(data || [])
-  }
-
-  async function carregarMensagensPrivadas(destinatario, membroBase) {
-    const remetente = membroBase || membroAtual
-    const destino = destinatario || membroSelecionado
-
-    if (!remetente || !destino) return
-
-    const { data } = await supabase
-      .from('mensagens_privadas')
-      .select('*')
-      .or(
-        `and(remetente_id.eq.${remetente.id},destinatario_id.eq.${destino.id}),and(remetente_id.eq.${destino.id},destinatario_id.eq.${remetente.id})`
+    const canalEquipe = supabase
+      .channel('chat-geral-equipe')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'mensagens_equipe'
+        },
+        async () => {
+          await carregarMensagensEquipe()
+        }
       )
-      .order('id', { ascending: true })
-      .limit(80)
+      .subscribe()
 
-    setMensagensPrivadas(data || [])
-  }
+    const canalPrivado = supabase
+      .channel('chat-privado-equipe')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'mensagens_privadas'
+        },
+        async () => {
+          if (membroSelecionado) {
+            await carregarMensagensPrivadas(membroSelecionado, membroAtual)
+          }
+        }
+      )
+      .subscribe()
+
+    const canalMembros = supabase
+      .channel('membros-online')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'equipe_membros'
+        },
+        async () => {
+          await carregarMembros()
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(canalEquipe)
+      supabase.removeChannel(canalPrivado)
+      supabase.removeChannel(canalMembros)
+    }
+
+  }, [
+    membroAtual,
+    membroSelecionado,
+    carregarMembros,
+    carregarMensagensEquipe,
+    carregarMensagensPrivadas
+  ])
 
   async function enviarMensagemEquipe() {
     if (!mensagemEquipe.trim()) return
@@ -130,7 +180,7 @@ export default function Equipe() {
       ])
 
     setMensagemEquipe('')
-    carregarMensagensEquipe()
+    await carregarMensagensEquipe()
   }
 
   async function enviarMensagemPrivada() {
@@ -148,36 +198,12 @@ export default function Equipe() {
       ])
 
     setMensagemPrivada('')
-    carregarMensagensPrivadas(membroSelecionado, membroAtual)
+    await carregarMensagensPrivadas(membroSelecionado, membroAtual)
   }
 
   async function selecionarMembro(membro) {
     setMembroSelecionado(membro)
-
-    const remetente = membroAtual
-    const destino = membro
-
-    if (!remetente || !destino) return
-
-    const { data } = await supabase
-      .from('mensagens_privadas')
-      .select('*')
-      .or(
-        `and(remetente_id.eq.${remetente.id},destinatario_id.eq.${destino.id}),and(remetente_id.eq.${destino.id},destinatario_id.eq.${remetente.id})`
-      )
-      .order('id', { ascending: true })
-      .limit(80)
-
-    setMensagensPrivadas(data || [])
-  }
-
-  async function atualizarTudo() {
-    await carregarMembros()
-    await carregarMensagensEquipe()
-
-    if (membroSelecionado && membroAtual) {
-      await carregarMensagensPrivadas(membroSelecionado, membroAtual)
-    }
+    await carregarMensagensPrivadas(membro, membroAtual)
   }
 
   return (
@@ -187,22 +213,13 @@ export default function Equipe() {
         <h1>Equipe</h1>
       </div>
 
-      <div className="team-refresh-area">
-        <button
-          className="btn-secondary"
-          onClick={atualizarTudo}
-        >
-          Atualizar mensagens
-        </button>
-      </div>
-
       <div className="team-chat-layout">
 
         <div className="card">
 
           <div className="card-title">
             <Users size={22} />
-            Membros da Equipe
+            Membros Online
           </div>
 
           <div className="online-list">
@@ -241,7 +258,7 @@ export default function Equipe() {
 
           <div className="card-title">
             <MessageCircle size={22} />
-            Chat Geral da Equipe
+            Chat Geral
           </div>
 
           <div className="chat-box">
@@ -256,7 +273,9 @@ export default function Equipe() {
                 }
               >
                 <strong>
-                  {msg.equipe_membros?.nome || 'Membro'}
+                  {msg.remetente_id === membroAtual?.id
+                    ? 'Você'
+                    : msg.equipe_membros?.nome || 'Membro'}
                 </strong>
 
                 <p>{msg.mensagem}</p>
@@ -267,7 +286,7 @@ export default function Equipe() {
 
           <div className="chat-input">
             <input
-              placeholder="Digite uma mensagem para toda a equipe..."
+              placeholder="Mensagem para toda a equipe..."
               value={mensagemEquipe}
               onChange={(e) => setMensagemEquipe(e.target.value)}
               onKeyDown={(e) => {
@@ -293,7 +312,7 @@ export default function Equipe() {
 
         {!membroSelecionado ? (
           <div className="empty-chat">
-            Selecione um membro da equipe para iniciar uma conversa individual.
+            Selecione um membro para iniciar uma conversa individual.
           </div>
         ) : (
           <>
