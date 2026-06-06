@@ -3974,22 +3974,22 @@ select {
 /* ================================= */
 
 .logo {
-  width: 100% !important;
-
   display: flex !important;
   justify-content: center !important;
   align-items: center !important;
 
-  padding: 20px 0 !important;
-  margin-bottom: 30px !important;
+  height: 120px !important;
+  margin-bottom: 10px !important;
+  overflow: visible !important;
 }
 
 .logo img {
-  width: 140px !important;
-  max-width: 100px !important;
+  width: 190px !important;
   height: auto !important;
 
-  display: block !important;
+  transform: scale(1.35);
+  transform-origin: center center;
+
   object-fit: contain !important;
 }
 
