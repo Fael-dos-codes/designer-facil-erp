@@ -3903,8 +3903,8 @@ select {
 /* ================================================= */
 
 .login-form-logo {
-  width: 240px !important;
-  height: 180px !important;
+  width: 300px !important;
+  height: 220px !important;
 
   display: flex;
   align-items: center;
@@ -3914,8 +3914,8 @@ select {
 }
 
 .login-form-logo img {
-  max-width: 230px !important;
-  max-height: 170px !important;
+  max-width: 290px !important;
+  max-height: 210px !important;
 
   width: auto !important;
   height: auto !important;
@@ -3930,15 +3930,15 @@ select {
 @media (max-width: 768px) {
 
   .login-form-logo {
-    width: 200px !important;
-    height: 150px !important;
+    width: 250px !important;
+    height: 180px !important;
 
     margin-bottom: 20px !important;
   }
 
   .login-form-logo img {
-    max-width: 190px !important;
-    max-height: 140px !important;
+    max-width: 240px !important;
+    max-height: 170px !important;
   }
 }
 
@@ -3949,8 +3949,8 @@ select {
 .sidebar-logo img,
 .mobile-logo img,
 .header-logo img {
-  width: 95px !important;
-  height: 95px !important;
+  width: 140px !important;
+  height: 140px !important;
 
   object-fit: contain !important;
 }
@@ -3964,7 +3964,7 @@ select {
   .sidebar-logo img,
   .mobile-logo img,
   .header-logo img {
-    width: 75px !important;
-    height: 75px !important;
+    width: 100px !important;
+    height: 100px !important;
   }
 }
