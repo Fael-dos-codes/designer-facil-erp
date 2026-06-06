@@ -3832,3 +3832,68 @@ select {
     height: 360px !important;
   }
 }
+
+/* ===== LOGO SIDEBAR ===== */
+
+.sidebar-logo {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  padding: 20px 0 !important;
+}
+
+.sidebar-logo img {
+  width: 82px !important;
+  height: 82px !important;
+
+  object-fit: contain !important;
+}
+
+@media (max-width: 768px) {
+
+  .sidebar-logo img {
+    width: 60px !important;
+    height: 60px !important;
+  }
+}
+
+/* ===== LOGO LOGIN MAIOR ===== */
+
+.login-form-logo {
+  width: 180px !important;
+  height: 140px !important;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  margin: 0 auto 25px auto;
+}
+
+.login-form-logo img {
+  width: auto !important;
+  height: auto !important;
+
+  max-width: 170px !important;
+  max-height: 130px !important;
+
+  object-fit: contain;
+}
+
+/* MOBILE */
+
+@media (max-width: 768px) {
+
+  .login-form-logo {
+    width: 160px !important;
+    height: 120px !important;
+
+    margin-bottom: 18px !important;
+  }
+
+  .login-form-logo img {
+    max-width: 150px !important;
+    max-height: 110px !important;
+  }
+}

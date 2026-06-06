@@ -29,10 +29,6 @@ export default function MainLayout({ children }) {
 
         <div className="logo">
           <img src={logo} alt="Designer Fácil" />
-
-          <div>
-            <h1>Designer Fácil</h1>
-          </div>
         </div>
 
         <nav className="menu">
