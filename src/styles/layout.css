@@ -3984,10 +3984,10 @@ select {
 }
 
 .logo img {
-  width: 190px !important;
+  width: 170px !important;
   height: auto !important;
 
-  transform: scale(1.35);
+  transform: scale(1.15);
   transform-origin: center center;
 
   object-fit: contain !important;
