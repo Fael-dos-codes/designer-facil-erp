@@ -89,7 +89,6 @@ export default function Dashboard() {
 
       <div className="page-header">
         <h1>Dashboard</h1>
-        <p>Visão geral da Designer Fácil</p>
       </div>
 
       <div className="stats-grid">
@@ -140,17 +139,22 @@ export default function Dashboard() {
           <div className="dashboard-list">
 
             {ultimosClientes.length === 0 ? (
-              <div className="dashboard-item">
+              <div className="dashboard-item dashboard-empty">
                 Nenhum cliente cadastrado.
               </div>
             ) : (
               ultimosClientes.map(cliente => (
                 <div
-                  className="dashboard-item"
+                  className="dashboard-item dashboard-item-clean"
                   key={cliente.id}
                 >
-                  <strong>{cliente.nome}</strong>
-                  <span>{cliente.empresa}</span>
+                  <strong>
+                    {cliente.nome || 'Cliente sem nome'}
+                  </strong>
+
+                  <span>
+                    Empresa: {cliente.empresa || 'Não informada'}
+                  </span>
                 </div>
               ))
             )}
@@ -164,18 +168,25 @@ export default function Dashboard() {
           <div className="dashboard-list">
 
             {ultimosProjetos.length === 0 ? (
-              <div className="dashboard-item">
+              <div className="dashboard-item dashboard-empty">
                 Nenhum projeto cadastrado.
               </div>
             ) : (
               ultimosProjetos.map(projeto => (
                 <div
-                  className="dashboard-item"
+                  className="dashboard-item dashboard-item-clean"
                   key={projeto.id}
                 >
-                  <strong>{projeto.servico}</strong>
+                  <strong>
+                    {projeto.servico || 'Projeto sem serviço'}
+                  </strong>
+
                   <span>
-                    {projeto.clientes?.nome || 'Cliente não encontrado'} — {projeto.status}
+                    Cliente: {projeto.clientes?.nome || 'Não encontrado'}
+                  </span>
+
+                  <span>
+                    Status: {projeto.status || 'Sem status'}
                   </span>
                 </div>
               ))

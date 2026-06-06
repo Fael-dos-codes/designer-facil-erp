@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../services/supabase'
+
 import {
   Users,
   BriefcaseBusiness,
@@ -24,22 +25,12 @@ export default function VisaoGeral() {
 
       const { data: projetosData } = await supabase
         .from('projetos')
-        .select(`
-          *,
-          clientes (
-            nome
-          )
-        `)
+        .select('*')
         .order('id', { ascending: false })
 
       const { data: financeiroData } = await supabase
         .from('financeiro')
-        .select(`
-          *,
-          clientes (
-            nome
-          )
-        `)
+        .select('*')
         .order('id', { ascending: false })
 
       setClientes(clientesData || [])
@@ -50,13 +41,8 @@ export default function VisaoGeral() {
     carregarDados()
   }, [])
 
-  const projetosAtivos = projetos.filter(
-    projeto => projeto.status === 'Em andamento'
-  ).length
-
-  const projetosConcluidos = projetos.filter(
-    projeto => projeto.status === 'Concluído'
-  ).length
+  const projetosAtivos = projetos.filter(projeto => projeto.status === 'Em andamento').length
+  const projetosConcluidos = projetos.filter(projeto => projeto.status === 'Concluído').length
 
   const totalRecebido = financeiro
     .filter(registro => registro.status === 'Pago')
@@ -72,7 +58,6 @@ export default function VisaoGeral() {
       <div className="overview-header">
         <div>
           <h1>Visão Geral</h1>
-          <p>Resumo corporativo da operação da Designer Fácil</p>
         </div>
       </div>
 
@@ -81,7 +66,7 @@ export default function VisaoGeral() {
         <div className="overview-stat">
           <Users />
           <div>
-            <span>Clientes ativos</span>
+            <span>Clientes cadastrados</span>
             <strong>{clientes.length}</strong>
           </div>
         </div>
@@ -122,10 +107,8 @@ export default function VisaoGeral() {
 
           {clientes.slice(0, 5).map(cliente => (
             <div className="overview-list-item" key={cliente.id}>
-              <div>
-                <strong>{cliente.nome}</strong>
-                <span>{cliente.empresa}</span>
-              </div>
+              <strong>{cliente.nome}</strong>
+              <span>Empresa: {cliente.empresa || 'Não informada'}</span>
             </div>
           ))}
 
@@ -142,12 +125,9 @@ export default function VisaoGeral() {
 
           {projetos.slice(0, 5).map(projeto => (
             <div className="overview-list-item" key={projeto.id}>
-              <div>
-                <strong>{projeto.servico}</strong>
-                <span>
-                  {projeto.clientes?.nome || 'Cliente não encontrado'} · {projeto.status}
-                </span>
-              </div>
+              <strong>{projeto.servico || 'Projeto sem serviço'}</strong>
+              <span>Cliente: {projeto.cliente_nome || projeto.responsavel || 'Não informado'}</span>
+              <span>Status: {projeto.status || 'Sem status'}</span>
             </div>
           ))}
 
