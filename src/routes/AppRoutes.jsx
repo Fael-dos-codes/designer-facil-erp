@@ -11,8 +11,8 @@ import Clientes from '../pages/Clientes'
 import Projetos from '../pages/Projetos'
 import Financeiro from '../pages/Financeiro'
 import Equipe from '../pages/Equipe'
-import Configuracoes from '../pages/Configuracoes'
 import VisaoGeral from '../pages/Visaogeral'
+import Entregas from '../pages/Entregas'
 
 export default function AppRoutes() {
 
@@ -100,6 +100,19 @@ export default function AppRoutes() {
         />
 
         <Route
+          path="/entregas"
+          element={
+            usuario ? (
+              <MainLayout>
+                <Entregas />
+              </MainLayout>
+            ) : (
+              <Navigate to="/login" />
+            )
+          }
+        />
+
+        <Route
           path="/financeiro"
           element={
             usuario ? (
@@ -125,31 +138,20 @@ export default function AppRoutes() {
           }
         />
 
+        
+
         <Route
-          path="/configuracoes"
+          path="/visao-geral"
           element={
             usuario ? (
               <MainLayout>
-                <Configuracoes />
+                <VisaoGeral />
               </MainLayout>
             ) : (
               <Navigate to="/login" />
             )
           }
         />
-
-        <Route
-  path="/visao-geral"
-  element={
-    usuario ? (
-      <MainLayout>
-        <VisaoGeral />
-      </MainLayout>
-    ) : (
-      <Navigate to="/login" />
-    )
-  }
-/>
 
       </Routes>
 

@@ -1,9 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { supabase } from '../services/supabase'
 import ConfirmModal from '../components/ConfirmModal'
 
 export default function Financeiro() {
-
   const [clientes, setClientes] = useState([])
   const [registros, setRegistros] = useState([])
 
@@ -29,32 +28,32 @@ export default function Financeiro() {
   const [modalAberto, setModalAberto] = useState(false)
   const [registroParaExcluir, setRegistroParaExcluir] = useState(null)
 
-  useEffect(() => {
-    async function carregarDados() {
-      const { data: clientesData } = await supabase
-        .from('clientes')
-        .select('*')
-        .order('nome')
+  function mostrarMensagem(texto, tipo) {
+    setMensagem(texto)
+    setTipoMensagem(tipo)
 
-      setClientes(clientesData || [])
+    setTimeout(() => {
+      setMensagem('')
+      setTipoMensagem('')
+    }, 4000)
+  }
 
-      const { data: financeiroData } = await supabase
-        .from('financeiro')
-        .select(`
-          *,
-          clientes (
-            nome
-          )
-        `)
-        .order('id', { ascending: false })
+  const carregarClientes = useCallback(async () => {
+    const { data, error } = await supabase
+      .from('clientes')
+      .select('*')
+      .order('nome')
 
-      setRegistros(financeiroData || [])
+    if (error) {
+      console.log(error)
+      mostrarMensagem(error.message || 'Erro ao carregar clientes.', 'erro')
+      return
     }
 
-    carregarDados()
+    setClientes(data || [])
   }, [])
 
-  async function carregarFinanceiro() {
+  const carregarFinanceiro = useCallback(async () => {
     const { data, error } = await supabase
       .from('financeiro')
       .select(`
@@ -67,22 +66,21 @@ export default function Financeiro() {
 
     if (error) {
       console.log(error)
-      mostrarMensagem('Erro ao carregar registros.', 'erro')
+      mostrarMensagem(error.message || 'Erro ao carregar registros.', 'erro')
       return
     }
 
-    setRegistros(data)
-  }
+    setRegistros(data || [])
+  }, [])
 
-  function mostrarMensagem(texto, tipo) {
-    setMensagem(texto)
-    setTipoMensagem(tipo)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      carregarClientes()
+      carregarFinanceiro()
+    }, 0)
 
-    setTimeout(() => {
-      setMensagem('')
-      setTipoMensagem('')
-    }, 3000)
-  }
+    return () => clearTimeout(timer)
+  }, [carregarClientes, carregarFinanceiro])
 
   function validarFormulario() {
     if (!clienteId) {
@@ -118,32 +116,34 @@ export default function Financeiro() {
     return true
   }
 
+  function montarPayload() {
+    return {
+      cliente_id: Number(clienteId),
+      descricao: descricao.trim(),
+      valor: Number(valor),
+      status,
+      data_pagamento: status === 'Pago' ? dataPagamento || null : null,
+      data_vencimento: dataVencimento || null,
+      forma_pagamento: formaPagamento || null,
+      mes_referencia: mesReferencia
+    }
+  }
+
   async function salvarRegistro() {
     if (!validarFormulario()) return
 
     const { error } = await supabase
       .from('financeiro')
-      .insert([
-        {
-          cliente_id: clienteId,
-          descricao,
-          valor,
-          status,
-          data_pagamento: dataPagamento || null,
-          data_vencimento: dataVencimento || null,
-          forma_pagamento: formaPagamento || null,
-          mes_referencia: mesReferencia
-        }
-      ])
+      .insert([montarPayload()])
 
     if (error) {
       console.log(error)
-      mostrarMensagem('Erro ao salvar registro.', 'erro')
+      mostrarMensagem(error.message || 'Erro ao salvar registro.', 'erro')
       return
     }
 
     limparFormulario()
-    carregarFinanceiro()
+    await carregarFinanceiro()
     mostrarMensagem('Registro cadastrado com sucesso.', 'sucesso')
   }
 
@@ -152,26 +152,17 @@ export default function Financeiro() {
 
     const { error } = await supabase
       .from('financeiro')
-      .update({
-        cliente_id: clienteId,
-        descricao,
-        valor,
-        status,
-        data_pagamento: dataPagamento || null,
-        data_vencimento: dataVencimento || null,
-        forma_pagamento: formaPagamento || null,
-        mes_referencia: mesReferencia
-      })
+      .update(montarPayload())
       .eq('id', registroEditando)
 
     if (error) {
       console.log(error)
-      mostrarMensagem('Erro ao atualizar registro.', 'erro')
+      mostrarMensagem(error.message || 'Erro ao atualizar registro.', 'erro')
       return
     }
 
     limparFormulario()
-    carregarFinanceiro()
+    await carregarFinanceiro()
     mostrarMensagem('Registro atualizado com sucesso.', 'sucesso')
   }
 
@@ -195,27 +186,28 @@ export default function Financeiro() {
 
     if (error) {
       console.log(error)
-      mostrarMensagem('Erro ao excluir registro.', 'erro')
+      mostrarMensagem(error.message || 'Erro ao excluir registro.', 'erro')
       fecharModalExclusao()
       return
     }
 
-    carregarFinanceiro()
+    await carregarFinanceiro()
     mostrarMensagem('Registro excluído com sucesso.', 'sucesso')
     fecharModalExclusao()
   }
 
   function editarRegistro(registro) {
     setRegistroEditando(registro.id)
-
-    setClienteId(registro.cliente_id)
-    setDescricao(registro.descricao)
-    setValor(registro.valor)
-    setStatus(registro.status)
+    setClienteId(String(registro.cliente_id || ''))
+    setDescricao(registro.descricao || '')
+    setValor(String(registro.valor || ''))
+    setStatus(registro.status || 'Pendente')
     setDataPagamento(registro.data_pagamento || '')
     setDataVencimento(registro.data_vencimento || '')
     setFormaPagamento(registro.forma_pagamento || '')
     setMesReferencia(registro.mes_referencia || '')
+
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   function limparFormulario() {
@@ -237,52 +229,52 @@ export default function Financeiro() {
     setBuscaDescricao('')
   }
 
-  function mostrarStatus(status) {
-    if (status === 'Pago') {
+  function mostrarStatus(statusAtual) {
+    if (statusAtual === 'Pago') {
       return <span className="status-badge status-concluido">Pago</span>
     }
 
-    if (status === 'Pendente') {
+    if (statusAtual === 'Pendente') {
       return <span className="status-badge status-aguardando">Pendente</span>
     }
 
-    if (status === 'Atrasado') {
+    if (statusAtual === 'Atrasado') {
       return <span className="status-badge status-cancelado">Atrasado</span>
     }
 
-    if (status === 'Cancelado') {
+    if (statusAtual === 'Cancelado') {
       return <span className="status-badge status-cancelado">Cancelado</span>
     }
 
-    return status
+    return statusAtual
   }
 
-  const registrosFiltrados = registros.filter(registro => {
-    const mesCorresponde = filtroMes
-      ? registro.mes_referencia === filtroMes
-      : true
+  const registrosFiltrados = useMemo(() => {
+    return registros.filter(registro => {
+      const mesCorresponde = filtroMes
+        ? registro.mes_referencia === filtroMes
+        : true
 
-    const clienteCorresponde = filtroCliente
-      ? String(registro.cliente_id) === String(filtroCliente)
-      : true
+      const clienteCorresponde = filtroCliente
+        ? String(registro.cliente_id) === String(filtroCliente)
+        : true
 
-    const statusCorresponde = filtroStatus
-      ? registro.status === filtroStatus
-      : true
+      const statusCorresponde = filtroStatus
+        ? registro.status === filtroStatus
+        : true
 
-    const descricaoCorresponde = buscaDescricao
-      ? registro.descricao.toLowerCase().includes(
-          buscaDescricao.toLowerCase()
-        )
-      : true
+      const descricaoCorresponde = buscaDescricao
+        ? String(registro.descricao || '').toLowerCase().includes(buscaDescricao.toLowerCase())
+        : true
 
-    return (
-      mesCorresponde &&
-      clienteCorresponde &&
-      statusCorresponde &&
-      descricaoCorresponde
-    )
-  })
+      return (
+        mesCorresponde &&
+        clienteCorresponde &&
+        statusCorresponde &&
+        descricaoCorresponde
+      )
+    })
+  }, [registros, filtroMes, filtroCliente, filtroStatus, buscaDescricao])
 
   const totalRecebido = registrosFiltrados
     .filter(registro => registro.status === 'Pago')
@@ -298,14 +290,12 @@ export default function Financeiro() {
 
   return (
     <div>
-
       <div className="page-header">
         <h1>Financeiro</h1>
         <p>Controle de receitas, vencimentos e pagamentos</p>
       </div>
 
       <div className="stats-grid">
-
         <div className="stat-card">
           <div className="stat-value">
             R$ {totalRecebido.toFixed(2)}
@@ -332,20 +322,16 @@ export default function Financeiro() {
             Atrasado
           </div>
         </div>
-
       </div>
 
       <div className="card">
-
         <div className="card-title">
           Filtros Financeiros
         </div>
 
         <div className="form-grid">
-
           <div className="form-group">
             <label>Buscar por descrição</label>
-
             <input
               value={buscaDescricao}
               onChange={(e) => setBuscaDescricao(e.target.value)}
@@ -355,13 +341,11 @@ export default function Financeiro() {
 
           <div className="form-group">
             <label>Cliente</label>
-
             <select
               value={filtroCliente}
               onChange={(e) => setFiltroCliente(e.target.value)}
             >
               <option value="">Todos</option>
-
               {clientes.map(cliente => (
                 <option key={cliente.id} value={cliente.id}>
                   {cliente.nome}
@@ -372,7 +356,6 @@ export default function Financeiro() {
 
           <div className="form-group">
             <label>Status</label>
-
             <select
               value={filtroStatus}
               onChange={(e) => setFiltroStatus(e.target.value)}
@@ -387,14 +370,12 @@ export default function Financeiro() {
 
           <div className="form-group">
             <label>Mês</label>
-
             <input
               type="month"
               value={filtroMes}
               onChange={(e) => setFiltroMes(e.target.value)}
             />
           </div>
-
         </div>
 
         <div className="actions">
@@ -405,11 +386,9 @@ export default function Financeiro() {
             Limpar Filtros
           </button>
         </div>
-
       </div>
 
       <div className="card">
-
         <div className="card-title">
           {registroEditando ? 'Editar Registro' : 'Novo Registro Financeiro'}
         </div>
@@ -421,13 +400,10 @@ export default function Financeiro() {
         )}
 
         <div className="form-grid">
-
           <div className="form-group">
             <label>Cliente</label>
-
             <select value={clienteId} onChange={(e) => setClienteId(e.target.value)}>
               <option value="">Selecione um cliente</option>
-
               {clientes.map(cliente => (
                 <option key={cliente.id} value={cliente.id}>
                   {cliente.nome}
@@ -438,26 +414,27 @@ export default function Financeiro() {
 
           <div className="form-group">
             <label>Descrição</label>
-
             <input
               value={descricao}
               onChange={(e) => setDescricao(e.target.value)}
+              placeholder="Ex: Mensalidade, logo, tráfego..."
             />
           </div>
 
           <div className="form-group">
             <label>Valor</label>
-
             <input
               type="number"
+              min="0"
+              step="0.01"
               value={valor}
               onChange={(e) => setValor(e.target.value)}
+              placeholder="Ex: 500"
             />
           </div>
 
           <div className="form-group">
             <label>Mês de Referência</label>
-
             <input
               type="month"
               value={mesReferencia}
@@ -467,7 +444,6 @@ export default function Financeiro() {
 
           <div className="form-group">
             <label>Status</label>
-
             <select value={status} onChange={(e) => setStatus(e.target.value)}>
               <option value="Pendente">Pendente</option>
               <option value="Pago">Pago</option>
@@ -478,7 +454,6 @@ export default function Financeiro() {
 
           <div className="form-group">
             <label>Forma de Pagamento</label>
-
             <select
               value={formaPagamento}
               onChange={(e) => setFormaPagamento(e.target.value)}
@@ -494,7 +469,6 @@ export default function Financeiro() {
 
           <div className="form-group">
             <label>Data de Vencimento</label>
-
             <input
               type="date"
               value={dataVencimento}
@@ -504,18 +478,16 @@ export default function Financeiro() {
 
           <div className="form-group">
             <label>Data de Pagamento</label>
-
             <input
               type="date"
               value={dataPagamento}
               onChange={(e) => setDataPagamento(e.target.value)}
+              disabled={status !== 'Pago'}
             />
           </div>
-
         </div>
 
         <div className="actions">
-
           {registroEditando ? (
             <>
               <button className="btn-primary" onClick={atualizarRegistro}>
@@ -531,21 +503,16 @@ export default function Financeiro() {
               Salvar Registro
             </button>
           )}
-
         </div>
-
       </div>
 
       <div className="card">
-
         <div className="card-title">
           Registros Financeiros ({registrosFiltrados.length})
         </div>
 
         <div className="table-container">
-
           <table className="client-table">
-
             <thead>
               <tr>
                 <th>ID</th>
@@ -564,7 +531,6 @@ export default function Financeiro() {
             <tbody>
               {registrosFiltrados.map(registro => (
                 <tr key={registro.id}>
-
                   <td>{registro.id}</td>
 
                   <td>
@@ -604,15 +570,11 @@ export default function Financeiro() {
                       Excluir
                     </button>
                   </td>
-
                 </tr>
               ))}
             </tbody>
-
           </table>
-
         </div>
-
       </div>
 
       <ConfirmModal
@@ -624,7 +586,6 @@ export default function Financeiro() {
         aoCancelar={fecharModalExclusao}
         aoConfirmar={confirmarExclusao}
       />
-
     </div>
   )
 }

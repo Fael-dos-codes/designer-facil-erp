@@ -1,13 +1,12 @@
 import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '../services/supabase'
-import { Users, Send, Circle, MessageCircle } from 'lucide-react'
+import { Users, Send, MessageCircle } from 'lucide-react'
 
 export default function Equipe() {
   const [membroAtual, setMembroAtual] = useState(null)
   const [membros, setMembros] = useState([])
   const [mensagensEquipe, setMensagensEquipe] = useState([])
   const [mensagensPrivadas, setMensagensPrivadas] = useState([])
-
   const [mensagemEquipe, setMensagemEquipe] = useState('')
   const [mensagemPrivada, setMensagemPrivada] = useState('')
   const [membroSelecionado, setMembroSelecionado] = useState(null)
@@ -16,7 +15,6 @@ export default function Equipe() {
     const { data } = await supabase
       .from('equipe_membros')
       .select('*')
-      .order('status_online', { ascending: false })
       .order('nome')
 
     setMembros(data || [])
@@ -59,7 +57,6 @@ export default function Equipe() {
   useEffect(() => {
     async function iniciarEquipe() {
       const { data } = await supabase.auth.getUser()
-
       if (!data.user) return
 
       const email = data.user.email
@@ -76,9 +73,7 @@ export default function Equipe() {
           {
             user_id: data.user.id,
             nome,
-            email,
-            status_online: true,
-            ultimo_acesso: new Date().toISOString()
+            email
           }
         ], {
           onConflict: 'user_id'
@@ -102,14 +97,8 @@ export default function Equipe() {
       .channel('mensagens-equipe-realtime')
       .on(
         'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'mensagens_equipe'
-        },
-        async () => {
-          await carregarMensagensEquipe()
-        }
+        { event: 'INSERT', schema: 'public', table: 'mensagens_equipe' },
+        carregarMensagensEquipe
       )
       .subscribe()
 
@@ -117,42 +106,43 @@ export default function Equipe() {
       .channel('mensagens-privadas-realtime')
       .on(
         'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'mensagens_privadas'
-        },
-        async () => {
+        { event: 'INSERT', schema: 'public', table: 'mensagens_privadas' },
+        () => {
           if (membroSelecionado) {
-            await carregarMensagensPrivadas(membroSelecionado, membroAtual)
+            carregarMensagensPrivadas(membroSelecionado, membroAtual)
           }
         }
+      )
+      .subscribe()
+
+    const canalMembros = supabase
+      .channel('equipe-membros-realtime')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'equipe_membros' },
+        carregarMembros
       )
       .subscribe()
 
     return () => {
       supabase.removeChannel(canalEquipe)
       supabase.removeChannel(canalPrivado)
+      supabase.removeChannel(canalMembros)
     }
   }, [
     membroAtual,
     membroSelecionado,
+    carregarMembros,
     carregarMensagensEquipe,
     carregarMensagensPrivadas
   ])
 
   async function enviarMensagemEquipe() {
-    if (!mensagemEquipe.trim()) return
-    if (!membroAtual) return
+    if (!mensagemEquipe.trim() || !membroAtual) return
 
     await supabase
       .from('mensagens_equipe')
-      .insert([
-        {
-          remetente_id: membroAtual.id,
-          mensagem: mensagemEquipe
-        }
-      ])
+      .insert([{ remetente_id: membroAtual.id, mensagem: mensagemEquipe }])
 
     setMensagemEquipe('')
     await carregarMensagensEquipe()
@@ -164,8 +154,7 @@ export default function Equipe() {
   }
 
   async function enviarMensagemPrivada() {
-    if (!mensagemPrivada.trim()) return
-    if (!membroAtual || !membroSelecionado) return
+    if (!mensagemPrivada.trim() || !membroAtual || !membroSelecionado) return
 
     await supabase
       .from('mensagens_privadas')
@@ -181,6 +170,12 @@ export default function Equipe() {
     await carregarMensagensPrivadas(membroSelecionado, membroAtual)
   }
 
+  const membrosOrdenados = [...membros].sort((a, b) => {
+    if (a.id === membroAtual?.id) return -1
+    if (b.id === membroAtual?.id) return 1
+    return a.nome.localeCompare(b.nome)
+  })
+
   return (
     <div>
       <div className="page-header">
@@ -188,15 +183,14 @@ export default function Equipe() {
       </div>
 
       <div className="team-chat-layout">
-
         <div className="card">
           <div className="card-title">
             <Users size={22} />
-            Membros Online
+            Membros da equipe
           </div>
 
           <div className="online-list">
-            {membros.map(membro => (
+            {membrosOrdenados.map(membro => (
               <button
                 key={membro.id}
                 className={
@@ -211,14 +205,14 @@ export default function Equipe() {
                 </div>
 
                 <div>
-                  <strong>{membro.nome}</strong>
+                  <strong>
+                    {membro.id === membroAtual?.id
+                      ? `${membro.nome} (você)`
+                      : membro.nome}
+                  </strong>
+
                   <span>{membro.email}</span>
                 </div>
-
-                <Circle
-                  size={12}
-                  className={membro.status_online ? 'online-dot' : 'offline-dot'}
-                />
               </button>
             ))}
           </div>
@@ -266,7 +260,6 @@ export default function Equipe() {
             </button>
           </div>
         </div>
-
       </div>
 
       <div className="card chat-card">

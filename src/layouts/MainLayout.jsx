@@ -3,6 +3,7 @@ import '../styles/layout.css'
 import { NavLink } from 'react-router-dom'
 import { supabase } from '../services/supabase'
 import logo from '../assets/logo.png'
+import TeamPresenceNotifications from '../components/TeamPresenceNotifications'
 
 import {
   LayoutDashboard,
@@ -10,8 +11,8 @@ import {
   BriefcaseBusiness,
   Wallet,
   UserCog,
-  Settings,
   BarChart3,
+  Upload,
   LogOut
 } from 'lucide-react'
 
@@ -24,6 +25,7 @@ export default function MainLayout({ children }) {
 
   return (
     <div className="layout">
+      <TeamPresenceNotifications />
 
       <aside className="sidebar">
 
@@ -33,10 +35,10 @@ export default function MainLayout({ children }) {
 
         <nav className="menu">
 
-            <NavLink to="/visao-geral" className={({ isActive }) => isActive ? 'menu-item active' : 'menu-item'}>
-  <BarChart3 size={18} />
-  Visão Geral
-</NavLink>
+          <NavLink to="/visao-geral" className={({ isActive }) => isActive ? 'menu-item active' : 'menu-item'}>
+            <BarChart3 size={18} />
+            Visão Geral
+          </NavLink>
 
           <NavLink to="/" className={({ isActive }) => isActive ? 'menu-item active' : 'menu-item'}>
             <LayoutDashboard size={18} />
@@ -53,6 +55,11 @@ export default function MainLayout({ children }) {
             Projetos
           </NavLink>
 
+          <NavLink to="/entregas" className={({ isActive }) => isActive ? 'menu-item active' : 'menu-item'}>
+            <Upload size={18} />
+            Entregas
+          </NavLink>
+
           <NavLink to="/financeiro" className={({ isActive }) => isActive ? 'menu-item active' : 'menu-item'}>
             <Wallet size={18} />
             Financeiro
@@ -63,10 +70,7 @@ export default function MainLayout({ children }) {
             Equipe
           </NavLink>
 
-          <NavLink to="/configuracoes" className={({ isActive }) => isActive ? 'menu-item active' : 'menu-item'}>
-            <Settings size={18} />
-            Configurações
-          </NavLink>
+          
 
         </nav>
 
